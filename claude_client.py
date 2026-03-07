@@ -122,14 +122,16 @@ You will receive:
 1. SOURCE — the original source material
 2. ONE-PAGER — a generated summary
 3. TABLES — generated reference tables
+4. FLOWCHART — Mermaid diagram code representing key concepts
 
 Your job:
 A. FACTUAL ACCURACY — identify any facts in the outputs that contradict or misrepresent the source.
    Only flag clear errors, not omissions (those go in gaps).
+   For the flowchart, check that the concepts and relationships shown are accurate to the source.
 
 B. CRITICAL GAPS — identify important concepts, data, or sections present in the source but
-   completely absent from the outputs. Minor omissions are fine; only flag things a student
-   would genuinely miss.
+   completely absent from ALL outputs combined. Minor omissions are fine; only flag things a
+   student would genuinely miss.
 
 Respond with ONLY valid JSON — no prose, no code fences:
 {
@@ -187,15 +189,16 @@ async def _call(system: str, content: list, max_tokens: int) -> str:
     return resp.content[0].text.strip()
 
 
-async def _validate(source_text: str, one_pager: str, table: str) -> dict:
-    """Validate generated outputs against the source for accuracy and completeness."""
+async def _validate(source_text: str, one_pager: str, table: str, flowchart: str) -> dict:
+    """Validate all generated outputs against the source for accuracy and completeness."""
     import json, re
 
     validation_content = [
         {"type": "text", "text": f"SOURCE:\n{source_text[:8000]}"},
         {"type": "text", "text": f"ONE-PAGER:\n{one_pager}"},
         {"type": "text", "text": f"TABLES:\n{table}"},
-        {"type": "text", "text": "Check the outputs against the source and respond with JSON only."},
+        {"type": "text", "text": f"FLOWCHART:\n{flowchart}"},
+        {"type": "text", "text": "Check all outputs against the source and respond with JSON only."},
     ]
 
     raw = await _call(_VALIDATE_SYSTEM, validation_content, 512)
@@ -216,36 +219,32 @@ async def _validate(source_text: str, one_pager: str, table: str) -> dict:
 
 
 async def generate_all(text: str, images: list) -> dict:
-    """Generate outputs, validate against the source, and retry until verified.
+    """Generate all outputs, validate against the source, and retry until verified.
 
-    Flow per attempt:
-      1. Generate one-pager + table in parallel (flowchart only on attempt 1)
-      2. Validate both against the source
-      3. If pass → done. If warn/fail → inject feedback and retry.
-    Gives up after MAX_ATTEMPTS and returns the best result with its validation.
+    All three outputs (one-pager, flowchart, table) are generated and validated
+    every attempt. Retries inject the specific issues/gaps so Claude fixes them.
+    Stops on "pass" or after MAX_ATTEMPTS, returning the best result achieved.
     """
     one_pager = flowchart = table = validation = None
 
     for attempt in range(1, MAX_ATTEMPTS + 1):
         log.info("Generation attempt %d/%d", attempt, MAX_ATTEMPTS)
 
-        if attempt == 1:
-            content = _build_content(text, images)
-            # Flowchart only generated once — it is not validated and does not change
-            one_pager, flowchart, table = await asyncio.gather(
-                _call(_ONE_PAGER_SYSTEM, content, 2048),
-                _call(_FLOWCHART_SYSTEM, content, 1024),
-                _call(_TABLE_SYSTEM, content, 2048),
-            )
-        else:
-            # Retry: pass validation feedback into the generation prompts
-            content = _build_retry_content(text, images, validation)
-            one_pager, table = await asyncio.gather(
-                _call(_ONE_PAGER_SYSTEM, content, 2048),
-                _call(_TABLE_SYSTEM, content, 2048),
-            )
+        content = (
+            _build_content(text, images)
+            if attempt == 1
+            else _build_retry_content(text, images, validation)
+        )
 
-        validation = await _validate(text, one_pager, table)
+        # All three outputs generated in parallel every attempt
+        one_pager, flowchart, table = await asyncio.gather(
+            _call(_ONE_PAGER_SYSTEM, content, 2048),
+            _call(_FLOWCHART_SYSTEM, content, 1024),
+            _call(_TABLE_SYSTEM, content, 2048),
+        )
+
+        # Validate all three against the source
+        validation = await _validate(text, one_pager, table, flowchart)
         validation["attempt"] = attempt
         log.info("Validation result: %s (attempt %d)", validation["status"], attempt)
 
@@ -253,7 +252,7 @@ async def generate_all(text: str, images: list) -> dict:
             break
 
         if attempt < MAX_ATTEMPTS:
-            log.info("Issues found — retrying with feedback: %s", validation)
+            log.info("Retrying with feedback: %s", validation)
 
     return {
         "one_pager": one_pager,

@@ -740,10 +740,13 @@
 
       const container = document.getElementById("flowchart-container");
       container.innerHTML = "";
+      // Use a unique ID each render — reusing the same ID causes Mermaid to silently fail
+      const mermaidId = "mermaid-" + Date.now();
       try {
-        const { svg } = await mermaid.render("mermaid-graph", data.flowchart);
+        const { svg } = await mermaid.render(mermaidId, data.flowchart);
         container.innerHTML = svg;
-      } catch (_) {
+      } catch (err) {
+        console.warn("Mermaid render failed:", err);
         container.innerHTML = `<pre class="mermaid-fallback">${escapeHtml(data.flowchart)}</pre>`;
       }
       document.getElementById("flowchart-raw").value = data.flowchart;

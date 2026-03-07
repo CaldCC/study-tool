@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Tool</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: #1d1d1f;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 1.5rem;
+      max-width: 860px;
+      margin: 0 auto 1.5rem;
+    }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 2px solid #e5e5ea; }
+    .tab-btn {
+      padding: 0.5rem 1.25rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: #6e6e73;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn.active { color: #0071e3; border-bottom-color: #0071e3; font-weight: 600; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Inputs */
+    .input-row { display: flex; gap: 0.5rem; }
+    input[type="text"], input[type="url"] {
+      flex: 1;
+      padding: 0.6rem 0.9rem;
+      border: 1.5px solid #d2d2d7;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus, input[type="url"]:focus { border-color: #0071e3; }
+
+    .file-drop {
+      border: 2px dashed #d2d2d7;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      color: #6e6e73;
+    }
+    .file-drop:hover, .file-drop.dragover { border-color: #0071e3; background: #f0f7ff; }
+    .file-drop input { display: none; }
+    #file-name { margin-top: 0.5rem; font-size: 0.85rem; color: #6e6e73; }
+
+    /* Buttons */
+    .btn {
+      padding: 0.6rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-primary { background: #0071e3; color: #fff; }
+    .btn-primary:hover { background: #005bbf; }
+    .btn-primary:disabled { background: #9ab8d8; cursor: not-allowed; }
+    .btn-sm {
+      padding: 0.35rem 0.8rem;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: 1.5px solid #d2d2d7;
+      background: #fff;
+      cursor: pointer;
+    }
+    .btn-sm:hover { background: #f5f5f7; }
+
+    /* Spinner */
+    .spinner-wrap { display: none; text-align: center; padding: 2rem 0; }
+    .spinner-wrap.active { display: block; }
+    .spinner {
+      display: inline-block;
+      width: 36px; height: 36px;
+      border: 3px solid #d2d2d7;
+      border-top-color: #0071e3;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-label { margin-top: 0.75rem; color: #6e6e73; font-size: 0.9rem; }
+
+    /* Error */
+    .error-banner {
+      display: none;
+      background: #fff2f2;
+      border: 1.5px solid #ffb3b3;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #c00;
+      margin-bottom: 1rem;
+    }
+    .error-banner.active { display: block; }
+
+    /* Output panel */
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .output-actions { display: flex; gap: 0.4rem; }
+
+    /* Markdown content */
+    .md-content h1, .md-content h2, .md-content h3 {
+      margin: 1rem 0 0.5rem;
+      line-height: 1.3;
+    }
+    .md-content h1 { font-size: 1.4rem; }
+    .md-content h2 { font-size: 1.15rem; }
+    .md-content ul, .md-content ol { padding-left: 1.5rem; }
+    .md-content li { margin: 0.25rem 0; }
+    .md-content p { margin: 0.5rem 0; line-height: 1.6; }
+    .md-content table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+    .md-content th, .md-content td {
+      border: 1px solid #d2d2d7;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    .md-content th { background: #f5f5f7; font-weight: 600; }
+    .md-content tr:nth-child(even) td { background: #fafafa; }
+
+    /* Flowchart */
+    #flowchart-svg { overflow-x: auto; }
+    #flowchart-raw { display: none; }
+    pre.mermaid-fallback {
+      background: #f5f5f7;
+      border: 1px solid #d2d2d7;
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.85rem;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Print styles */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .card { box-shadow: none; border-radius: 0; max-width: 100%; }
+      .tabs, .input-section, .output-actions, #flowchart-tab, #table-tab { display: none !important; }
+      #one-pager-panel { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Study Tool</h1>
+
+  <!-- Input card -->
+  <div class="card input-section">
+    <div class="tabs" id="input-tabs">
+      <button class="tab-btn active" data-tab="url-panel">URL</button>
+      <button class="tab-btn" data-tab="doi-panel">DOI</button>
+      <button class="tab-btn" data-tab="pdf-panel">PDF</button>
+    </div>
+
+    <div id="url-panel" class="tab-panel active">
+      <div class="input-row">
+        <input type="url" id="url-input" placeholder="https://en.wikipedia.org/wiki/..." />
+        <button class="btn btn-primary" id="url-btn">Summarise</button>
+      </div>
+    </div>
+
+    <div id="doi-panel" class="tab-panel">
+      <div class="input-row">
+        <input type="text" id="doi-input" placeholder="10.1038/nature12373" />
+        <button class="btn btn-primary" id="doi-btn">Summarise</button>
+      </div>
+    </div>
+
+    <div id="pdf-panel" class="tab-panel">
+      <label class="file-drop" id="file-drop">
+        <input type="file" id="pdf-input" accept=".pdf" />
+        <span>Drop a PDF here or click to browse</span>
+        <div id="file-name"></div>
+      </label>
+      <div style="margin-top:0.75rem; text-align:right;">
+        <button class="btn btn-primary" id="pdf-btn" disabled>Summarise</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner -->
+  <div class="spinner-wrap" id="spinner">
+    <div class="spinner"></div>
+    <div class="spinner-label">Generating summary with Claude…</div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-banner card" id="error-banner"></div>
+
+  <!-- Output card -->
+  <div class="card" id="output-card" style="display:none;">
+    <div class="tabs" id="output-tabs">
+      <button class="tab-btn active" data-tab="one-pager-panel">One-Pager</button>
+      <button class="tab-btn" data-tab="flowchart-panel">Flow Chart</button>
+      <button class="tab-btn" data-tab="table-panel">Table</button>
+    </div>
+
+    <!-- One-pager -->
+    <div id="one-pager-panel" class="tab-panel active">
+      <div class="output-header">
+        <span style="font-weight:600; color:#6e6e73; font-size:0.85rem;">ONE-PAGER</span>
+        <div class="output-actions">
+          <button class="btn-sm" id="copy-one-pager">Copy</button>
+          <button class="btn-sm" id="download-one-pager">Download</button>
+          <button class="btn-sm" onclick="window.print()">Print</button>
+        </div>
+      </div>
+      <div class="md-content" id="one-pager-content"></div>
+    </div>
+
+    <!-- Flowchart -->
+    <div id="flowchart-panel" class="tab-panel">
+      <div class="output-header">
+        <span style="font-weight:600; color:#6e6e73; font-size:0.85rem;">FLOW CHART</span>
+        <div class="output-actions">
+          <button class="btn-sm" id="copy-flowchart">Copy source</button>
+          <button class="btn-sm" id="download-flowchart-svg">Download SVG</button>
+        </div>
+      </div>
+      <div id="flowchart-svg"></div>
+      <textarea id="flowchart-raw" readonly></textarea>
+    </div>
+
+    <!-- Table -->
+    <div id="table-panel" class="tab-panel">
+      <div class="output-header">
+        <span style="font-weight:600; color:#6e6e73; font-size:0.85rem;">CONCEPT TABLE</span>
+        <div class="output-actions">
+          <button class="btn-sm" id="copy-table">Copy</button>
+          <button class="btn-sm" id="download-table">Download</button>
+        </div>
+      </div>
+      <div class="md-content" id="table-content"></div>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: "default" });
+
+    // Tab switching (generic)
+    function setupTabs(containerSelector) {
+      document.querySelectorAll(containerSelector + " .tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tabId = btn.dataset.tab;
+          const container = btn.closest(".card") || document.body;
+          container.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          container.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(tabId).classList.add("active");
+        });
+      });
+    }
+    setupTabs("#input-tabs");
+    setupTabs("#output-tabs");
+
+    // File drop
+    const fileDrop = document.getElementById("file-drop");
+    const pdfInput = document.getElementById("pdf-input");
+    const pdfBtn = document.getElementById("pdf-btn");
+    const fileNameEl = document.getElementById("file-name");
+
+    pdfInput.addEventListener("change", () => {
+      if (pdfInput.files[0]) {
+        fileNameEl.textContent = pdfInput.files[0].name;
+        pdfBtn.disabled = false;
+      }
+    });
+    fileDrop.addEventListener("dragover", e => { e.preventDefault(); fileDrop.classList.add("dragover"); });
+    fileDrop.addEventListener("dragleave", () => fileDrop.classList.remove("dragover"));
+    fileDrop.addEventListener("drop", e => {
+      e.preventDefault();
+      fileDrop.classList.remove("dragover");
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith(".pdf")) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        pdfInput.files = dt.files;
+        fileNameEl.textContent = file.name;
+        pdfBtn.disabled = false;
+      }
+    });
+
+    // State
+    let rawData = null;
+
+    function showError(msg) {
+      const el = document.getElementById("error-banner");
+      el.textContent = msg;
+      el.classList.add("active");
+    }
+    function clearError() {
+      document.getElementById("error-banner").classList.remove("active");
+    }
+    function setLoading(on) {
+      document.getElementById("spinner").classList.toggle("active", on);
+      document.getElementById("output-card").style.display = on ? "none" : (rawData ? "block" : "none");
+      ["url-btn","doi-btn","pdf-btn"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = on || (id === "pdf-btn" && !pdfInput.files[0]);
+      });
+    }
+
+    async function handleResponse(resp) {
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({ detail: resp.statusText }));
+        throw new Error(body.detail || resp.statusText);
+      }
+      return resp.json();
+    }
+
+    async function renderResults(data) {
+      rawData = data;
+      document.getElementById("output-card").style.display = "block";
+
+      // One-pager
+      document.getElementById("one-pager-content").innerHTML = marked.parse(data.one_pager);
+
+      // Table
+      document.getElementById("table-content").innerHTML = marked.parse(data.table);
+
+      // Flowchart
+      const svgEl = document.getElementById("flowchart-svg");
+      svgEl.innerHTML = "";
+      try {
+        const { svg } = await mermaid.render("mermaid-diagram", data.flowchart);
+        svgEl.innerHTML = svg;
+      } catch (e) {
+        svgEl.innerHTML = `<pre class="mermaid-fallback">${escapeHtml(data.flowchart)}</pre>`;
+      }
+      document.getElementById("flowchart-raw").value = data.flowchart;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    async function submit(fetchFn) {
+      clearError();
+      setLoading(true);
+      try {
+        const data = await fetchFn();
+        await renderResults(data);
+      } catch (e) {
+        showError("Error: " + e.message);
+        document.getElementById("output-card").style.display = "none";
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    document.getElementById("url-btn").addEventListener("click", () => {
+      const url = document.getElementById("url-input").value.trim();
+      if (!url) return showError("Please enter a URL.");
+      submit(() =>
+        fetch("/process/url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        }).then(handleResponse)
+      );
+    });
+
+    document.getElementById("doi-btn").addEventListener("click", () => {
+      const doi = document.getElementById("doi-input").value.trim();
+      if (!doi) return showError("Please enter a DOI.");
+      submit(() =>
+        fetch("/process/doi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ doi }),
+        }).then(handleResponse)
+      );
+    });
+
+    document.getElementById("pdf-btn").addEventListener("click", () => {
+      const file = pdfInput.files[0];
+      if (!file) return showError("Please select a PDF file.");
+      const form = new FormData();
+      form.append("file", file);
+      submit(() =>
+        fetch("/process/pdf", { method: "POST", body: form }).then(handleResponse)
+      );
+    });
+
+    // Enter key support for text inputs
+    ["url-input","doi-input"].forEach(id => {
+      document.getElementById(id).addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          const btnId = id.replace("input","btn");
+          document.getElementById(btnId).click();
+        }
+      });
+    });
+
+    // Copy/download helpers
+    function copyText(text) {
+      navigator.clipboard.writeText(text).catch(() => {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      });
+    }
+    function downloadText(text, filename) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+      a.download = filename;
+      a.click();
+    }
+    function downloadSvg(filename) {
+      const svg = document.getElementById("flowchart-svg").innerHTML;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      a.download = filename;
+      a.click();
+    }
+
+    document.getElementById("copy-one-pager").addEventListener("click", () => rawData && copyText(rawData.one_pager));
+    document.getElementById("download-one-pager").addEventListener("click", () => rawData && downloadText(rawData.one_pager, "one-pager.md"));
+    document.getElementById("copy-flowchart").addEventListener("click", () => rawData && copyText(rawData.flowchart));
+    document.getElementById("download-flowchart-svg").addEventListener("click", () => downloadSvg("flowchart.svg"));
+    document.getElementById("copy-table").addEventListener("click", () => rawData && copyText(rawData.table));
+    document.getElementById("download-table").addEventListener("click", () => rawData && downloadText(rawData.table, "table.md"));
+  </script>
+</body>
+</html>

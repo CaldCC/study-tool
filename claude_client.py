@@ -6,17 +6,27 @@ import config
 
 _client = anthropic.AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY)
 
-_ONE_PAGER_SYSTEM = """You are an expert academic summariser. Given source material, produce a concise study one-pager in Markdown with exactly these sections:
+_ONE_PAGER_SYSTEM = """You are an expert academic summariser producing structured study notes.
 
-# <Title>
+Given source material, produce a study one-pager in Markdown following this exact structure:
 
-## Key Points
+# 📚 <Title>
+
+## 🔑 Key Points
 - 5–10 bullet points of the most important facts/ideas
 
-## Acronyms & Definitions
-- Bullet list of technical terms and their meanings (skip if none)
+## 🧠 Memory Acronyms & Mnemonics
+Create or extract useful acronyms/mnemonics to remember key concepts. Format each as:
+**"ACRONYM"** = What each letter stands for
+- Brief explanation of why it helps
 
-## Summary
+If no acronyms exist in the source, invent useful ones. Always include at least 2–3.
+
+## ⚡ Quick Patterns to Know
+- Important relationships, rules of thumb, or patterns worth remembering
+- Drug/interaction pairs, absorption rules, groupings, etc. (adapt to subject matter)
+
+## 📋 Summary
 2–3 paragraphs synthesising the material.
 
 Output ONLY the Markdown — no preamble, no code fences."""
@@ -30,14 +40,36 @@ Rules:
 - Use --> for directed edges with short edge labels where helpful
 - Start with: flowchart TD"""
 
-_TABLE_SYSTEM = """You are an expert at extracting structured knowledge. Given source material, produce a Markdown pipe table with these columns:
+_TABLE_SYSTEM = """You are an expert at extracting structured knowledge into study tables.
 
-| Concept | Definition | Key Properties | Example |
+Given source material, produce multiple focused Markdown tables, each preceded by a bold emoji heading. Model your output on this style:
+
+**📊 Master Reference Table**
+| Nutrient/Concept | Daily Dose / Value | Key Functions | Best Sources |
+|---|---|---|---|
+| ... | ... | ... | ... |
+
+**⚠️ Deficiency Signs**
+| Nutrient/Concept | Key Signs / Symptoms |
+|---|---|
+| ... | ... |
+
+**🚨 Toxicity / Upper Limits** (include only if relevant)
+| Nutrient/Concept | Safe Upper Level | Toxicity Signs |
+|---|---|---|
+| ... | ... | ... |
+
+**💊 Key Interactions** (include only if relevant)
+| Item | Interacts With | Clinical Note |
+|---|---|---|
+| ... | ... | ... |
 
 Rules:
-- 5–15 rows covering the most important concepts
-- Keep each cell concise (≤20 words)
-- Output ONLY the Markdown table — no preamble, no code fences"""
+- Adapt column names and table types to the subject matter — use whichever tables make sense
+- Always include at least a master reference table and a deficiency/key-signs table
+- Keep cells concise (≤20 words)
+- Include acronyms as a row or note where relevant
+- Output ONLY the Markdown tables with their headings — no other prose, no code fences"""
 
 
 def _build_content(text: str, images: list) -> list:
@@ -66,7 +98,7 @@ async def generate_all(text: str, images: list) -> dict:
     one_pager, flowchart, table = await asyncio.gather(
         _call(_ONE_PAGER_SYSTEM, content, 2048),
         _call(_FLOWCHART_SYSTEM, content, 1024),
-        _call(_TABLE_SYSTEM, content, 1024),
+        _call(_TABLE_SYSTEM, content, 2048),
     )
 
     return {

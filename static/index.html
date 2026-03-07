@@ -329,27 +329,27 @@
     .md li { margin: 0.3rem 0; line-height: 1.6; color: #2a2c42; }
     .md strong { font-weight: 700; color: #1e3a5f; }
 
-    /* Tables — document style: navy header, banded rows */
+    /* ── Table base — shared structure ── */
     .md table {
       border-collapse: collapse;
       width: 100%;
       font-size: 0.865rem;
-      margin: 0.75rem 0 1.5rem;
+      margin: 0.5rem 0 1.75rem;
       border-radius: 8px;
       overflow: hidden;
       border: 1px solid #c5cee0;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.07);
     }
     .md th {
       background: #1e3a5f;
-      color: #ffffff;
+      color: #fff;
       font-weight: 600;
       padding: 0.65rem 0.9rem;
       text-align: left;
-      font-size: 0.8rem;
-      letter-spacing: 0.04em;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      border-right: 1px solid #2d5080;
+      border-right: 1px solid rgba(255,255,255,0.15);
     }
     .md th:last-child { border-right: none; }
     .md td {
@@ -361,11 +361,74 @@
     }
     .md td:last-child { border-right: none; }
     .md tr:last-child td { border-bottom: none; }
-    .md tr:nth-child(odd) td { background: #f4f6fd; }
+    .md tr:nth-child(odd) td  { background: #f4f6fd; }
     .md tr:nth-child(even) td { background: #ffffff; }
-    .md tr:hover td { background: #eaefff; transition: background 0.1s; }
+    .md tr:hover td { background: #e8edff; transition: background 0.1s; }
 
-    /* Acronym / callout boxes — bold paragraph starting with a key term */
+    /* ── Colour palette per table type ── */
+
+    /* 📊 Reference / Master — Navy */
+    .md table.tbl-reference th              { background: #1e3a5f; border-right-color: #2d5282; }
+    .md table.tbl-reference tr:nth-child(odd) td  { background: #f0f4ff; }
+    .md table.tbl-reference tr:hover td    { background: #dce6ff; }
+
+    /* ⚠️ Deficiency / Signs / Issues / Risk — Red */
+    .md table.tbl-deficiency th              { background: #8b1a1a; border-right-color: #a52828; }
+    .md table.tbl-deficiency tr:nth-child(odd) td  { background: #fff4f4; }
+    .md table.tbl-deficiency tr:nth-child(even) td { background: #fff8f8; }
+    .md table.tbl-deficiency tr:hover td    { background: #ffe0e0; }
+
+    /* 🚨 Toxicity / Limits / Danger — Crimson */
+    .md table.tbl-toxicity th              { background: #6b1a00; border-right-color: #852200; }
+    .md table.tbl-toxicity tr:nth-child(odd) td  { background: #fff5f0; }
+    .md table.tbl-toxicity tr:nth-child(even) td { background: #fff9f7; }
+    .md table.tbl-toxicity tr:hover td    { background: #ffe8e0; }
+
+    /* 💊 Interactions / Drug / Pairs — Green */
+    .md table.tbl-interaction th              { background: #1a5c35; border-right-color: #226b40; }
+    .md table.tbl-interaction tr:nth-child(odd) td  { background: #f0fff5; }
+    .md table.tbl-interaction tr:nth-child(even) td { background: #f8fffb; }
+    .md table.tbl-interaction tr:hover td    { background: #d6f5e3; }
+
+    /* 🧠 Acronyms / Memory — Amber */
+    .md table.tbl-acronym th              { background: #7a4500; border-right-color: #8f5200; }
+    .md table.tbl-acronym tr:nth-child(odd) td  { background: #fffaf0; }
+    .md table.tbl-acronym tr:nth-child(even) td { background: #fffcf7; }
+    .md table.tbl-acronym tr:hover td    { background: #ffefc0; }
+
+    /* 🤰 Special Groups / Life stage — Purple */
+    .md table.tbl-special th              { background: #4a1a7a; border-right-color: #5b2290; }
+    .md table.tbl-special tr:nth-child(odd) td  { background: #f8f0ff; }
+    .md table.tbl-special tr:nth-child(even) td { background: #fbf7ff; }
+    .md table.tbl-special tr:hover td    { background: #ecd9ff; }
+
+    /* 🦴 Groupings / Bundles / Structural — Teal */
+    .md table.tbl-group th              { background: #1a4a5c; border-right-color: #215870; }
+    .md table.tbl-group tr:nth-child(odd) td  { background: #f0f8ff; }
+    .md table.tbl-group tr:nth-child(even) td { background: #f7fbff; }
+    .md table.tbl-group tr:hover td    { background: #d6edff; }
+
+    /* Table section heading label — coloured pill above each table */
+    .tbl-label {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      margin-bottom: 0.4rem;
+      margin-top: 1.25rem;
+    }
+    .tbl-label-reference  { background: #dce6ff; color: #1e3a5f; }
+    .tbl-label-deficiency { background: #ffe0e0; color: #8b1a1a; }
+    .tbl-label-toxicity   { background: #ffe5d8; color: #6b1a00; }
+    .tbl-label-interaction{ background: #d6f5e3; color: #1a5c35; }
+    .tbl-label-acronym    { background: #ffefc0; color: #7a4500; }
+    .tbl-label-special    { background: #ecd9ff; color: #4a1a7a; }
+    .tbl-label-group      { background: #d6edff; color: #1a4a5c; }
+    .tbl-label-default    { background: #e8eaf6; color: #2d3a5c; }
+
+    /* Callout / blockquote */
     .md blockquote {
       border-left: 4px solid var(--accent);
       background: #f0f2ff;
@@ -621,8 +684,13 @@
     async function renderResults(data) {
       rawData = data;
 
-      document.getElementById("out-one-pager").innerHTML = marked.parse(data.one_pager);
-      document.getElementById("out-table").innerHTML = marked.parse(data.table);
+      const onePagerEl = document.getElementById("out-one-pager");
+      onePagerEl.innerHTML = marked.parse(data.one_pager);
+      classifyTables(onePagerEl);
+
+      const tableEl = document.getElementById("out-table");
+      tableEl.innerHTML = marked.parse(data.table);
+      classifyTables(tableEl);
 
       const container = document.getElementById("flowchart-container");
       container.innerHTML = "";
@@ -706,6 +774,55 @@
     });
 
     // ── Helpers ──
+    // ── Table classifier — reads the bold heading before each table and applies a colour class ──
+    const TABLE_RULES = [
+      { keywords: ['master', 'reference', 'quick ref', 'overview'],            cls: 'tbl-reference' },
+      { keywords: ['deficien', 'sign', 'symptom', 'issue', 'risk', 'warning'], cls: 'tbl-deficiency' },
+      { keywords: ['toxic', 'upper', 'limit', 'danger', 'overdose', 'safe'],   cls: 'tbl-toxicity' },
+      { keywords: ['interact', 'drug', 'deplet', 'pair', 'conflict'],          cls: 'tbl-interaction' },
+      { keywords: ['acronym', 'mnemonic', 'memory', 'aid', 'recall'],          cls: 'tbl-acronym' },
+      { keywords: ['pregnan', 'life stage', 'special group', 'infant', 'child', 'elder'], cls: 'tbl-special' },
+      { keywords: ['group', 'bundle', 'bone', 'structural', 'cluster', 'team', 'antioxidant', 'thyroid'], cls: 'tbl-group' },
+    ];
+
+    const LABEL_TEXT = {
+      'tbl-reference':   '📊 Master Reference',
+      'tbl-deficiency':  '⚠️ Deficiency / Signs',
+      'tbl-toxicity':    '🚨 Toxicity & Limits',
+      'tbl-interaction': '💊 Interactions',
+      'tbl-acronym':     '🧠 Acronyms & Memory',
+      'tbl-special':     '🤰 Special Groups',
+      'tbl-group':       '🦴 Key Groupings',
+      'default':         '📋 Table',
+    };
+
+    function classifyTables(container) {
+      // Walk every <p> that contains only a <strong> — these are the table headings
+      const paras = container.querySelectorAll('p');
+      paras.forEach(p => {
+        const strong = p.querySelector('strong');
+        if (!strong || p.textContent.trim() !== strong.textContent.trim()) return;
+        const heading = strong.textContent.toLowerCase();
+        const nextEl = p.nextElementSibling;
+        if (!nextEl || nextEl.tagName !== 'TABLE') return;
+
+        // Determine class
+        let matched = 'default';
+        for (const rule of TABLE_RULES) {
+          if (rule.keywords.some(k => heading.includes(k))) { matched = rule.cls; break; }
+        }
+
+        // Add colour class to table
+        nextEl.classList.add(matched);
+
+        // Replace the <p><strong> heading with a styled pill label
+        const pill = document.createElement('div');
+        pill.className = `tbl-label tbl-label-${matched.replace('tbl-','')}`;
+        pill.textContent = LABEL_TEXT[matched] || strong.textContent;
+        p.replaceWith(pill);
+      });
+    }
+
     function escapeHtml(s) {
       return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     }

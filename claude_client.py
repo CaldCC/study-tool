@@ -8,7 +8,7 @@ _client = anthropic.AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY)
 
 _ONE_PAGER_SYSTEM = """You are an expert academic summariser producing structured study notes.
 
-Given source material, produce a study one-pager in Markdown following this exact structure:
+Given source material, produce a study one-pager in Markdown following this EXACT structure:
 
 # 📚 <Title>
 
@@ -16,15 +16,23 @@ Given source material, produce a study one-pager in Markdown following this exac
 - 5–10 bullet points of the most important facts/ideas
 
 ## 🧠 Memory Acronyms & Mnemonics
-Create or extract useful acronyms/mnemonics to remember key concepts. Format each as:
-**"ACRONYM"** = What each letter stands for
-- Brief explanation of why it helps
+THIS SECTION IS MANDATORY — always produce at least 3 entries.
+- Extract any acronyms already present in the source (e.g. ADEK, RICE, SMART)
+- For key concept groups not already abbreviated, INVENT a memorable acronym
+- Format EVERY entry exactly like this:
 
-If no acronyms exist in the source, invent useful ones. Always include at least 2–3.
+**"ADEK"** = **A**ntioxidant · **D**ensity · **E**lectrolytes · **K**inase
+→ Fat-soluble vitamins stored in liver/fat — toxicity risk if excess
 
-## ⚡ Quick Patterns to Know
-- Important relationships, rules of thumb, or patterns worth remembering
-- Drug/interaction pairs, absorption rules, groupings, etc. (adapt to subject matter)
+**"SICK"** = **S**poon nails · **I**nfections · **C**racked mouth · **K**—fatigue
+→ Signs of iron deficiency anaemia
+
+Invent new acronyms for any important list of 3+ items that lacks one.
+Always explain what each letter stands for AND why the grouping matters.
+
+## ⚡ Quick Patterns & Rules
+- Key relationships, rules of thumb, pairings, and groupings worth memorising
+- e.g. absorption conflicts, dose thresholds, category rules
 
 ## 📋 Summary
 2–3 paragraphs synthesising the material.
@@ -40,36 +48,31 @@ Rules:
 - Use --> for directed edges with short edge labels where helpful
 - Start with: flowchart TD"""
 
-_TABLE_SYSTEM = """You are an expert at extracting structured knowledge into study tables.
+_TABLE_SYSTEM = """You are an expert at extracting structured knowledge into colour-coded study tables.
 
-Given source material, produce multiple focused Markdown tables, each preceded by a bold emoji heading. Model your output on this style:
+Produce multiple focused Markdown tables. ALWAYS begin each table with a bold emoji heading on its own line — the heading keyword controls the colour the app applies, so use these EXACT heading keywords:
 
-**📊 Master Reference Table**
-| Nutrient/Concept | Daily Dose / Value | Key Functions | Best Sources |
-|---|---|---|---|
-| ... | ... | ... | ... |
-
-**⚠️ Deficiency Signs**
-| Nutrient/Concept | Key Signs / Symptoms |
-|---|---|
-| ... | ... |
-
-**🚨 Toxicity / Upper Limits** (include only if relevant)
-| Nutrient/Concept | Safe Upper Level | Toxicity Signs |
-|---|---|---|
-| ... | ... | ... |
-
-**💊 Key Interactions** (include only if relevant)
-| Item | Interacts With | Clinical Note |
-|---|---|---|
-| ... | ... | ... |
+**📊 Master Reference Table** — main overview (columns vary by subject)
+**⚠️ Deficiency Signs** — signs, symptoms, or failure modes
+**🚨 Toxicity & Upper Limits** — risks, overdose, safety thresholds
+**💊 Key Interactions** — drug/element/system interactions, pairings, conflicts
+**🧠 Acronyms & Memory Aids** — every acronym from the source + invented ones for key groups
+**🤰 Special Groups** — pregnancy, children, elderly, life-stage notes (if relevant)
+**🦴 Key Groupings** — thematic clusters, bundles, related concept sets (if relevant)
 
 Rules:
-- Adapt column names and table types to the subject matter — use whichever tables make sense
-- Always include at least a master reference table and a deficiency/key-signs table
+- ALWAYS include: Master Reference Table, Deficiency Signs, Acronyms & Memory Aids
+- Include other tables only when the source contains relevant data
 - Keep cells concise (≤20 words)
-- Include acronyms as a row or note where relevant
-- Output ONLY the Markdown tables with their headings — no other prose, no code fences"""
+- For the Acronyms table use columns: | Acronym | Stands For | Meaning / Use |
+- Output ONLY the Markdown tables with their bold headings — no other prose, no code fences
+
+Example Acronyms table:
+**🧠 Acronyms & Memory Aids**
+| Acronym | Stands For | Meaning / Use |
+|---|---|---|
+| ADEK | A, D, E, K | Fat-soluble vitamins — stored in liver, toxicity risk |
+| SICK | Spoon nails · Infections · Cracked mouth · K-fatigue | Signs of iron deficiency |"""
 
 
 def _build_content(text: str, images: list) -> list:

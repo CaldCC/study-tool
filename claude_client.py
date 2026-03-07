@@ -39,14 +39,40 @@ Always explain what each letter stands for AND why the grouping matters.
 
 Output ONLY the Markdown — no preamble, no code fences."""
 
-_FLOWCHART_SYSTEM = """You are a diagram expert. Given source material, produce ONLY valid Mermaid flowchart syntax (flowchart TD) showing the main concepts and their relationships.
+_FLOWCHART_SYSTEM = """You are a diagram expert. Given source material, first assess the content type, then choose the BEST Mermaid diagram type from the list below and produce ONLY valid Mermaid syntax for it.
 
-Rules:
-- Output ONLY the Mermaid code — no prose, no code fences, no backticks
-- Maximum 15 nodes
-- Node labels must be short (≤6 words)
-- Use --> for directed edges with short edge labels where helpful
-- Start with: flowchart TD"""
+DIAGRAM SELECTION RULES — pick exactly one:
+
+1. mindmap
+   Use when: reference material, categorised lists, topics that radiate from a central theme
+   Example content: vitamins, taxonomies, concept overviews, study notes
+   Syntax starts with: mindmap
+
+2. flowchart LR
+   Use when: processes, pipelines, decision trees, cause → effect chains
+   Example content: how something works step by step, if/else logic, workflows
+   Syntax starts with: flowchart LR
+
+3. flowchart TD
+   Use when: hierarchies, parent → child relationships, classification trees
+   Example content: organisational structures, inheritance, ranked categories
+   Syntax starts with: flowchart TD
+
+4. sequenceDiagram
+   Use when: interactions between actors over time, protocols, request/response cycles
+   Example content: API flows, biological signalling, communication patterns
+   Syntax starts with: sequenceDiagram
+
+5. graph LR
+   Use when: networks of relationships without a clear direction or hierarchy
+   Example content: interconnected systems, dependency maps, relationship webs
+   Syntax starts with: graph LR
+
+OUTPUT RULES — apply regardless of which diagram type you choose:
+- Output ONLY the Mermaid code — no prose, no explanation, no code fences, no backticks
+- Keep all labels short (≤6 words)
+- Maximum 15 nodes / participants
+- Always choose the type that makes the content easiest to understand at a glance"""
 
 _TABLE_SYSTEM = """You are an expert at extracting structured knowledge into colour-coded study tables.
 

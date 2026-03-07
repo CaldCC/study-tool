@@ -578,6 +578,19 @@
           </div>
         </div>
 
+        <!-- Validation bar -->
+        <div id="validation-bar" style="display:none; padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border); font-size: 0.82rem;">
+          <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+            <span id="val-badge" style="display:inline-flex; align-items:center; gap:0.3rem; font-weight:700; padding:0.2rem 0.7rem; border-radius:20px; font-size:0.78rem;"></span>
+            <span id="val-summary" style="color:var(--muted);"></span>
+            <button id="val-toggle" style="margin-left:auto; background:none; border:none; cursor:pointer; font-size:0.78rem; color:var(--accent); font-weight:600; display:none;">Show details ▾</button>
+          </div>
+          <div id="val-details" style="display:none; margin-top:0.6rem; display:none;">
+            <div id="val-issues"></div>
+            <div id="val-gaps"></div>
+          </div>
+        </div>
+
         <div class="output-body">
 
           <!-- One-pager -->
@@ -713,6 +726,9 @@
     async function renderResults(data) {
       rawData = data;
 
+      // Render validation badge
+      if (data.validation) renderValidation(data.validation);
+
       const onePagerEl = document.getElementById("out-one-pager");
       onePagerEl.innerHTML = marked.parse(data.one_pager);
       classifyTables(onePagerEl);
@@ -753,6 +769,7 @@
 
     async function submit(fetchFn) {
       clearError();
+      document.getElementById("validation-bar").style.display = "none";
       submitBtn.disabled = true;
       showState("loading");
       try {
@@ -803,6 +820,52 @@
     });
 
     // ── Helpers ──
+    // ── Validation banner ──
+    function renderValidation(v) {
+      const bar    = document.getElementById("validation-bar");
+      const badge  = document.getElementById("val-badge");
+      const summary= document.getElementById("val-summary");
+      const toggle = document.getElementById("val-toggle");
+      const details= document.getElementById("val-details");
+      const issues = document.getElementById("val-issues");
+      const gaps   = document.getElementById("val-gaps");
+
+      const cfg = {
+        pass: { label: "✅ Verified",      bg: "#e6f9ee", color: "#1a6b35", border: "#b3e6c8" },
+        warn: { label: "⚠️ Minor gaps",    bg: "#fff8e6", color: "#7a5200", border: "#ffd980" },
+        fail: { label: "❌ Issues found",  bg: "#fdecea", color: "#8b1a1a", border: "#f5b3b3" },
+      };
+      const c = cfg[v.status] || cfg.warn;
+
+      bar.style.display = "block";
+      bar.style.background = c.bg;
+      bar.style.borderColor = c.border;
+      badge.textContent = c.label;
+      badge.style.cssText += `background:${c.bg};color:${c.color};border:1.5px solid ${c.border};`;
+      summary.textContent = v.summary || "";
+
+      const hasDetails = (v.factual_issues?.length || 0) + (v.critical_gaps?.length || 0) > 0;
+      toggle.style.display = hasDetails ? "inline" : "none";
+
+      issues.innerHTML = "";
+      gaps.innerHTML = "";
+
+      if (v.factual_issues?.length) {
+        issues.innerHTML = `<div style="font-weight:700;color:#8b1a1a;margin-bottom:0.3rem;">Factual issues</div>` +
+          v.factual_issues.map(i => `<div style="margin-bottom:0.2rem;">• ${escapeHtml(i)}</div>`).join("");
+      }
+      if (v.critical_gaps?.length) {
+        gaps.innerHTML = `<div style="font-weight:700;color:#7a5200;margin:0.5rem 0 0.3rem;">Critical gaps</div>` +
+          v.critical_gaps.map(g => `<div style="margin-bottom:0.2rem;">• ${escapeHtml(g)}</div>`).join("");
+      }
+
+      toggle.onclick = () => {
+        const open = details.style.display !== "none" && details.style.display !== "";
+        details.style.display = open ? "none" : "block";
+        toggle.textContent = open ? "Show details ▾" : "Hide details ▴";
+      };
+    }
+
     // ── Table classifier — reads the bold heading before each table and applies a colour class ──
     const TABLE_RULES = [
       { keywords: ['master', 'reference', 'quick ref', 'overview'],            cls: 'tbl-reference' },

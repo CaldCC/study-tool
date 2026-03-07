@@ -112,6 +112,38 @@ Example Acronyms table:
 | SICK | Spoon nails · Infections · Cracked mouth · K-fatigue | Signs of iron deficiency |"""
 
 
+_VALIDATE_SYSTEM = """You are a strict quality checker for AI-generated study notes.
+
+You will receive:
+1. SOURCE — the original source material
+2. ONE-PAGER — a generated summary
+3. TABLES — generated reference tables
+
+Your job:
+A. FACTUAL ACCURACY — identify any facts in the outputs that contradict or misrepresent the source.
+   Only flag clear errors, not omissions (those go in gaps).
+
+B. CRITICAL GAPS — identify important concepts, data, or sections present in the source but
+   completely absent from the outputs. Minor omissions are fine; only flag things a student
+   would genuinely miss.
+
+Respond with ONLY valid JSON — no prose, no code fences:
+{
+  "status": "pass",
+  "factual_issues": [],
+  "critical_gaps": [],
+  "summary": "One sentence overall verdict."
+}
+
+Status rules:
+- "pass"  → no factual errors, no critical gaps
+- "warn"  → no factual errors but 1–3 notable gaps
+- "fail"  → one or more factual errors found
+
+Keep each item in factual_issues and critical_gaps to one concise sentence.
+Maximum 5 items per list. Be precise — cite the specific fact or concept."""
+
+
 def _build_content(text: str, images: list) -> list:
     blocks = []
     if images:
@@ -131,18 +163,51 @@ async def _call(system: str, content: list, max_tokens: int) -> str:
     return resp.content[0].text.strip()
 
 
+async def _validate(source_text: str, one_pager: str, table: str) -> dict:
+    """Validate generated outputs against the source for accuracy and completeness."""
+    import json, re
+
+    validation_content = [
+        {"type": "text", "text": f"SOURCE:\n{source_text[:8000]}"},
+        {"type": "text", "text": f"ONE-PAGER:\n{one_pager}"},
+        {"type": "text", "text": f"TABLES:\n{table}"},
+        {"type": "text", "text": "Check the outputs against the source and respond with JSON only."},
+    ]
+
+    raw = await _call(_VALIDATE_SYSTEM, validation_content, 512)
+
+    # Strip markdown fences if Claude adds them despite instructions
+    raw = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+    raw = re.sub(r"\s*```$", "", raw)
+
+    try:
+        return json.loads(raw)
+    except Exception:
+        return {
+            "status": "warn",
+            "factual_issues": [],
+            "critical_gaps": [],
+            "summary": "Validation could not be parsed — review outputs manually.",
+        }
+
+
 async def generate_all(text: str, images: list) -> dict:
-    """Call Claude three times in parallel and return all outputs."""
+    """Generate all three outputs in parallel, then validate against the source."""
     content = _build_content(text, images)
 
+    # Step 1 — generate all three outputs in parallel
     one_pager, flowchart, table = await asyncio.gather(
         _call(_ONE_PAGER_SYSTEM, content, 2048),
         _call(_FLOWCHART_SYSTEM, content, 1024),
         _call(_TABLE_SYSTEM, content, 2048),
     )
 
+    # Step 2 — validate outputs against the original source
+    validation = await _validate(text, one_pager, table)
+
     return {
         "one_pager": one_pager,
         "flowchart": flowchart,
         "table": table,
+        "validation": validation,
     }

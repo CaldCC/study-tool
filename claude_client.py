@@ -1,8 +1,12 @@
 import asyncio
+import logging
 
 import anthropic
 
 import config
+
+log = logging.getLogger(__name__)
+MAX_ATTEMPTS = 3
 
 _client = anthropic.AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY)
 
@@ -153,6 +157,26 @@ def _build_content(text: str, images: list) -> list:
     return blocks
 
 
+def _build_retry_content(text: str, images: list, validation: dict) -> list:
+    """Build content for a retry attempt, injecting validation feedback so Claude
+    knows exactly what factual errors to correct and what gaps to fill."""
+    blocks = _build_content(text, images)
+
+    feedback_lines = ["YOUR PREVIOUS OUTPUT WAS REJECTED BY A QUALITY CHECK. You MUST fix the following before resubmitting:\n"]
+
+    if validation.get("factual_issues"):
+        feedback_lines.append("FACTUAL ERRORS (must be corrected — these contradict the source):")
+        feedback_lines.extend(f"  • {i}" for i in validation["factual_issues"])
+
+    if validation.get("critical_gaps"):
+        feedback_lines.append("\nCRITICAL GAPS (must be added — important content missing from the source):")
+        feedback_lines.extend(f"  • {g}" for g in validation["critical_gaps"])
+
+    feedback_lines.append("\nRegenerate the full output, ensuring every issue above is resolved.")
+    blocks.append({"type": "text", "text": "\n".join(feedback_lines)})
+    return blocks
+
+
 async def _call(system: str, content: list, max_tokens: int) -> str:
     resp = await _client.messages.create(
         model=config.MODEL,
@@ -192,18 +216,44 @@ async def _validate(source_text: str, one_pager: str, table: str) -> dict:
 
 
 async def generate_all(text: str, images: list) -> dict:
-    """Generate all three outputs in parallel, then validate against the source."""
-    content = _build_content(text, images)
+    """Generate outputs, validate against the source, and retry until verified.
 
-    # Step 1 — generate all three outputs in parallel
-    one_pager, flowchart, table = await asyncio.gather(
-        _call(_ONE_PAGER_SYSTEM, content, 2048),
-        _call(_FLOWCHART_SYSTEM, content, 1024),
-        _call(_TABLE_SYSTEM, content, 2048),
-    )
+    Flow per attempt:
+      1. Generate one-pager + table in parallel (flowchart only on attempt 1)
+      2. Validate both against the source
+      3. If pass → done. If warn/fail → inject feedback and retry.
+    Gives up after MAX_ATTEMPTS and returns the best result with its validation.
+    """
+    one_pager = flowchart = table = validation = None
 
-    # Step 2 — validate outputs against the original source
-    validation = await _validate(text, one_pager, table)
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        log.info("Generation attempt %d/%d", attempt, MAX_ATTEMPTS)
+
+        if attempt == 1:
+            content = _build_content(text, images)
+            # Flowchart only generated once — it is not validated and does not change
+            one_pager, flowchart, table = await asyncio.gather(
+                _call(_ONE_PAGER_SYSTEM, content, 2048),
+                _call(_FLOWCHART_SYSTEM, content, 1024),
+                _call(_TABLE_SYSTEM, content, 2048),
+            )
+        else:
+            # Retry: pass validation feedback into the generation prompts
+            content = _build_retry_content(text, images, validation)
+            one_pager, table = await asyncio.gather(
+                _call(_ONE_PAGER_SYSTEM, content, 2048),
+                _call(_TABLE_SYSTEM, content, 2048),
+            )
+
+        validation = await _validate(text, one_pager, table)
+        validation["attempt"] = attempt
+        log.info("Validation result: %s (attempt %d)", validation["status"], attempt)
+
+        if validation["status"] == "pass":
+            break
+
+        if attempt < MAX_ATTEMPTS:
+            log.info("Issues found — retrying with feedback: %s", validation)
 
     return {
         "one_pager": one_pager,

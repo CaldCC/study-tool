@@ -561,7 +561,8 @@
       <!-- Loading -->
       <div class="loading-state" id="loading-state">
         <div class="spinner"></div>
-        <div class="loading-text">Generating summary with Claude…</div>
+        <div class="loading-text">Generating and verifying with Claude…</div>
+        <div style="font-size:0.78rem;color:#b0b3c8;margin-top:0.25rem;">Outputs are validated against the source — may take a moment</div>
       </div>
 
       <!-- Output -->
@@ -840,7 +841,9 @@
       bar.style.display = "block";
       bar.style.background = c.bg;
       bar.style.borderColor = c.border;
-      badge.textContent = c.label;
+      const attempts = v.attempt || 1;
+      const attemptNote = attempts > 1 ? ` · ${attempts} attempts` : "";
+      badge.textContent = c.label + attemptNote;
       badge.style.cssText += `background:${c.bg};color:${c.color};border:1.5px solid ${c.border};`;
       summary.textContent = v.summary || "";
 

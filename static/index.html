@@ -440,8 +440,21 @@
     }
 
     /* Flowchart */
-    #flowchart-container { overflow-x: auto; }
-    #flowchart-container svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    #flowchart-container {
+      overflow: auto;
+      background: #fafbff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      min-height: 300px;
+    }
+    #flowchart-container svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif !important;
+    }
     pre.mermaid-fallback {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -586,8 +599,24 @@
   </div>
 
   <script>
-    mermaid.initialize({ startOnLoad: false, theme: "base",
-      themeVariables: { primaryColor: "#eef0ff", primaryBorderColor: "#5b5fc7", lineColor: "#7b7f9e" }
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "base",
+      themeVariables: {
+        primaryColor: "#eef0ff",
+        primaryBorderColor: "#5b5fc7",
+        lineColor: "#7b7f9e",
+        fontSize: "14px",
+      },
+      mindmap: {
+        padding: 16,
+        useMaxWidth: true,
+      },
+      flowchart: {
+        curve: "basis",
+        padding: 20,
+        useMaxWidth: true,
+      },
     });
 
     // ── State ──

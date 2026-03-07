@@ -48,6 +48,17 @@ DIAGRAM SELECTION RULES — pick exactly one:
    Example content: vitamins, taxonomies, concept overviews, study notes
    Syntax starts with: mindmap
 
+   MINDMAP STRUCTURE RULES (strictly enforced):
+   - Level 1 (root): 1 node — the central topic, wrapped in (( ))
+   - Level 2: max 5 branches — the main categories, each on its own line indented 2 spaces
+   - Level 3: max 3 items per branch — key concepts only, indented 4 spaces
+   - Level 4: max 2 items per level-3 node if absolutely needed, indented 6 spaces
+   - Hard limit: 18 total nodes across all levels
+   - Labels: ≤5 words per node — ruthlessly abbreviate
+   - DO NOT list every item — group and summarise instead
+   - Good: "Fat-Soluble (ADEK)" as one branch with 3 vitamins under it
+   - Bad: listing all 12 vitamins as separate level-2 nodes
+
 2. flowchart LR
    Use when: processes, pipelines, decision trees, cause → effect chains
    Example content: how something works step by step, if/else logic, workflows

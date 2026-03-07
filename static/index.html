@@ -9,297 +9,541 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f5f7;
-      color: #1d1d1f;
-      min-height: 100vh;
-      padding: 2rem 1rem;
+    :root {
+      --accent: #5b5fc7;
+      --accent-hover: #4a4fb8;
+      --surface: #ffffff;
+      --bg: #f3f4f8;
+      --border: #e2e4ec;
+      --text: #1a1b2e;
+      --muted: #7b7f9e;
+      --danger-bg: #fff0f0;
+      --danger-border: #fcc;
+      --danger-text: #c0392b;
+      --left-width: 380px;
+      --topbar-height: 52px;
     }
 
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
-      color: #1d1d1f;
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
     }
 
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    /* ── Top bar ── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--topbar-height);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+      z-index: 100;
+      gap: 0.6rem;
+    }
+    .topbar-logo {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .topbar-logo svg { width: 16px; height: 16px; fill: #fff; }
+    .topbar h1 { font-size: 1rem; font-weight: 650; letter-spacing: -0.01em; }
+    .topbar-sub { font-size: 0.8rem; color: var(--muted); margin-left: 0.25rem; }
+
+    /* ── Main layout ── */
+    .layout {
+      display: flex;
+      height: 100vh;
+      padding-top: var(--topbar-height);
+    }
+
+    /* ── Left panel ── */
+    .left {
+      width: var(--left-width);
+      min-width: var(--left-width);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
       padding: 1.5rem;
-      max-width: 860px;
-      margin: 0 auto 1.5rem;
+      gap: 1.25rem;
     }
 
-    /* Tabs */
-    .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 2px solid #e5e5ea; }
-    .tab-btn {
-      padding: 0.5rem 1.25rem;
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Input type tabs */
+    .input-tabs {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .input-tab-btn {
+      flex: 1;
+      padding: 0.4rem 0;
       border: none;
       background: none;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 0.95rem;
-      color: #6e6e73;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: color 0.15s, border-color 0.15s;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: background 0.15s, color 0.15s;
     }
-    .tab-btn.active { color: #0071e3; border-bottom-color: #0071e3; font-weight: 600; }
+    .input-tab-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
 
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
-    /* Inputs */
-    .input-row { display: flex; gap: 0.5rem; }
+    /* Text inputs */
     input[type="text"], input[type="url"] {
-      flex: 1;
-      padding: 0.6rem 0.9rem;
-      border: 1.5px solid #d2d2d7;
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid var(--border);
       border-radius: 8px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: var(--surface);
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    input[type="text"]:focus, input[type="url"]:focus { border-color: #0071e3; }
+    input[type="text"]:focus, input[type="url"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91,95,199,0.12);
+    }
+    input::placeholder { color: #b0b3c8; }
 
+    /* File drop */
     .file-drop {
-      border: 2px dashed #d2d2d7;
-      border-radius: 8px;
-      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 1.75rem 1rem;
       text-align: center;
       cursor: pointer;
+      color: var(--muted);
+      font-size: 0.85rem;
       transition: border-color 0.15s, background 0.15s;
-      color: #6e6e73;
     }
-    .file-drop:hover, .file-drop.dragover { border-color: #0071e3; background: #f0f7ff; }
+    .file-drop:hover, .file-drop.dragover {
+      border-color: var(--accent);
+      background: rgba(91,95,199,0.04);
+    }
     .file-drop input { display: none; }
-    #file-name { margin-top: 0.5rem; font-size: 0.85rem; color: #6e6e73; }
+    .file-drop-icon { font-size: 1.6rem; }
+    .file-name-display {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 500;
+      margin-top: 0.25rem;
+      word-break: break-all;
+    }
 
-    /* Buttons */
-    .btn {
-      padding: 0.6rem 1.25rem;
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 0.7rem;
+      background: var(--accent);
+      color: #fff;
       border: none;
       border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 500;
-      transition: background 0.15s;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
-    .btn-primary { background: #0071e3; color: #fff; }
-    .btn-primary:hover { background: #005bbf; }
-    .btn-primary:disabled { background: #9ab8d8; cursor: not-allowed; }
-    .btn-sm {
-      padding: 0.35rem 0.8rem;
-      font-size: 0.8rem;
-      border-radius: 6px;
-      border: 1.5px solid #d2d2d7;
-      background: #fff;
-      cursor: pointer;
-    }
-    .btn-sm:hover { background: #f5f5f7; }
-
-    /* Spinner */
-    .spinner-wrap { display: none; text-align: center; padding: 2rem 0; }
-    .spinner-wrap.active { display: block; }
-    .spinner {
-      display: inline-block;
-      width: 36px; height: 36px;
-      border: 3px solid #d2d2d7;
-      border-top-color: #0071e3;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner-label { margin-top: 0.75rem; color: #6e6e73; font-size: 0.9rem; }
+    .btn-submit:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-submit:active:not(:disabled) { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* Error */
-    .error-banner {
+    .error-box {
       display: none;
-      background: #fff2f2;
-      border: 1.5px solid #ffb3b3;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
       border-radius: 8px;
-      padding: 0.75rem 1rem;
-      color: #c00;
-      margin-bottom: 1rem;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.85rem;
+      color: var(--danger-text);
+      line-height: 1.4;
     }
-    .error-banner.active { display: block; }
+    .error-box.active { display: block; }
+
+    /* ── Right panel ── */
+    .right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 2rem;
+    }
+    .empty-state-icon {
+      width: 60px; height: 60px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 0.25rem;
+    }
+    .empty-state h2 { font-size: 1rem; font-weight: 600; color: #5a5d7a; }
+    .empty-state p { font-size: 0.85rem; max-width: 280px; line-height: 1.5; }
+
+    /* Loading state */
+    .loading-state {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .loading-state.active { display: flex; }
+    .spinner {
+      width: 38px; height: 38px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.88rem; color: var(--muted); }
 
     /* Output panel */
+    .output-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeIn 0.25s ease;
+    }
+    .output-panel.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
     .output-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.75rem;
+      padding: 0 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
     }
-    .output-actions { display: flex; gap: 0.4rem; }
 
-    /* Markdown content */
-    .md-content h1, .md-content h2, .md-content h3 {
-      margin: 1rem 0 0.5rem;
-      line-height: 1.3;
+    /* Output tabs */
+    .output-tabs {
+      display: flex;
+      gap: 0;
     }
-    .md-content h1 { font-size: 1.4rem; }
-    .md-content h2 { font-size: 1.15rem; }
-    .md-content ul, .md-content ol { padding-left: 1.5rem; }
-    .md-content li { margin: 0.25rem 0; }
-    .md-content p { margin: 0.5rem 0; line-height: 1.6; }
-    .md-content table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-    .md-content th, .md-content td {
-      border: 1px solid #d2d2d7;
-      padding: 0.5rem 0.75rem;
-      text-align: left;
+    .output-tab-btn {
+      padding: 0.9rem 1.25rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--muted);
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
     }
-    .md-content th { background: #f5f5f7; font-weight: 600; }
-    .md-content tr:nth-child(even) td { background: #fafafa; }
+    .output-tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      font-weight: 600;
+    }
+    .output-tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* Download buttons in header */
+    .dl-actions { display: flex; gap: 0.4rem; }
+    .btn-dl {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.8rem;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text);
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .btn-dl:hover { background: var(--bg); border-color: #c5c8db; }
+    .btn-dl svg { width: 13px; height: 13px; fill: currentColor; }
+
+    /* Tab content areas */
+    .output-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+
+    .out-tab { display: none; }
+    .out-tab.active { display: block; }
+
+    /* Markdown styles */
+    .md h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 1rem; }
+    .md h2 { font-size: 1.05rem; font-weight: 650; margin: 1.5rem 0 0.5rem; color: #2d2f4a; }
+    .md h3 { font-size: 0.95rem; font-weight: 600; margin: 1rem 0 0.4rem; }
+    .md p { margin: 0.5rem 0; line-height: 1.7; color: #2a2c42; }
+    .md ul, .md ol { padding-left: 1.4rem; }
+    .md li { margin: 0.3rem 0; line-height: 1.6; color: #2a2c42; }
+    .md strong { font-weight: 650; color: var(--text); }
+    .md table { border-collapse: collapse; width: 100%; font-size: 0.875rem; margin-top: 0.5rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .md th { background: #f0f1f8; font-weight: 650; padding: 0.6rem 0.9rem; text-align: left; border-bottom: 1.5px solid var(--border); font-size: 0.8rem; letter-spacing: 0.02em; }
+    .md td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .md tr:last-child td { border-bottom: none; }
+    .md tr:nth-child(even) td { background: #fafafd; }
 
     /* Flowchart */
-    #flowchart-svg { overflow-x: auto; }
-    #flowchart-raw { display: none; }
+    #flowchart-container { overflow-x: auto; }
+    #flowchart-container svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
     pre.mermaid-fallback {
-      background: #f5f5f7;
-      border: 1px solid #d2d2d7;
+      background: var(--bg);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 1rem;
-      font-size: 0.85rem;
+      padding: 1rem 1.25rem;
+      font-size: 0.82rem;
       overflow: auto;
       white-space: pre-wrap;
+      color: var(--muted);
+    }
+    textarea#flowchart-raw { display: none; }
+
+    /* Scrollbar */
+    .output-body::-webkit-scrollbar { width: 5px; }
+    .output-body::-webkit-scrollbar-track { background: transparent; }
+    .output-body::-webkit-scrollbar-thumb { background: #d0d3e8; border-radius: 10px; }
+
+    /* Print */
+    @media print {
+      .topbar, .left, .output-header { display: none !important; }
+      .right { padding: 0; }
+      .output-panel { display: flex !important; }
+      .out-tab { display: none !important; }
+      #out-one-pager { display: block !important; }
+      .output-body { padding: 1rem; }
     }
 
-    /* Print styles */
-    @media print {
-      body { background: #fff; padding: 0; }
-      .card { box-shadow: none; border-radius: 0; max-width: 100%; }
-      .tabs, .input-section, .output-actions, #flowchart-tab, #table-tab { display: none !important; }
-      #one-pager-panel { display: block !important; }
+    /* Responsive: stack on small screens */
+    @media (max-width: 700px) {
+      .layout { flex-direction: column; }
+      .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); }
     }
   </style>
 </head>
 <body>
-  <h1>Study Tool</h1>
 
-  <!-- Input card -->
-  <div class="card input-section">
-    <div class="tabs" id="input-tabs">
-      <button class="tab-btn active" data-tab="url-panel">URL</button>
-      <button class="tab-btn" data-tab="doi-panel">DOI</button>
-      <button class="tab-btn" data-tab="pdf-panel">PDF</button>
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9V9h2v4zm0-6H9V5h2v2z"/></svg>
     </div>
+    <h1>Study Tool</h1>
+    <span class="topbar-sub">powered by Claude</span>
+  </header>
 
-    <div id="url-panel" class="tab-panel active">
-      <div class="input-row">
+  <div class="layout">
+
+    <!-- ── Left: input ── -->
+    <aside class="left">
+
+      <div>
+        <div class="section-label">Input source</div>
+        <div class="input-tabs" id="input-tabs">
+          <button class="input-tab-btn active" data-tab="url-panel">URL</button>
+          <button class="input-tab-btn" data-tab="doi-panel">DOI</button>
+          <button class="input-tab-btn" data-tab="pdf-panel">PDF</button>
+        </div>
+      </div>
+
+      <!-- URL -->
+      <div id="url-panel" class="tab-panel active">
+        <div class="section-label">Web page URL</div>
         <input type="url" id="url-input" placeholder="https://en.wikipedia.org/wiki/..." />
-        <button class="btn btn-primary" id="url-btn">Summarise</button>
       </div>
-    </div>
 
-    <div id="doi-panel" class="tab-panel">
-      <div class="input-row">
+      <!-- DOI -->
+      <div id="doi-panel" class="tab-panel">
+        <div class="section-label">Digital Object Identifier</div>
         <input type="text" id="doi-input" placeholder="10.1038/nature12373" />
-        <button class="btn btn-primary" id="doi-btn">Summarise</button>
       </div>
-    </div>
 
-    <div id="pdf-panel" class="tab-panel">
-      <label class="file-drop" id="file-drop">
-        <input type="file" id="pdf-input" accept=".pdf" />
-        <span>Drop a PDF here or click to browse</span>
-        <div id="file-name"></div>
-      </label>
-      <div style="margin-top:0.75rem; text-align:right;">
-        <button class="btn btn-primary" id="pdf-btn" disabled>Summarise</button>
+      <!-- PDF -->
+      <div id="pdf-panel" class="tab-panel">
+        <div class="section-label">PDF document</div>
+        <label class="file-drop" id="file-drop">
+          <input type="file" id="pdf-input" accept=".pdf" />
+          <span class="file-drop-icon">📄</span>
+          <span>Drop a PDF here or click to browse</span>
+          <div class="file-name-display" id="file-name"></div>
+        </label>
       </div>
-    </div>
-  </div>
 
-  <!-- Spinner -->
-  <div class="spinner-wrap" id="spinner">
-    <div class="spinner"></div>
-    <div class="spinner-label">Generating summary with Claude…</div>
-  </div>
+      <!-- Error -->
+      <div class="error-box" id="error-box"></div>
 
-  <!-- Error -->
-  <div class="error-banner card" id="error-banner"></div>
+      <!-- Submit -->
+      <button class="btn-submit" id="submit-btn">
+        <svg viewBox="0 0 20 20" style="width:15px;height:15px;fill:currentColor;flex-shrink:0"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11H9V5h2v2zm0 6H9V9h2v4z"/></svg>
+        Summarise
+      </button>
 
-  <!-- Output card -->
-  <div class="card" id="output-card" style="display:none;">
-    <div class="tabs" id="output-tabs">
-      <button class="tab-btn active" data-tab="one-pager-panel">One-Pager</button>
-      <button class="tab-btn" data-tab="flowchart-panel">Flow Chart</button>
-      <button class="tab-btn" data-tab="table-panel">Table</button>
-    </div>
+    </aside>
 
-    <!-- One-pager -->
-    <div id="one-pager-panel" class="tab-panel active">
-      <div class="output-header">
-        <span style="font-weight:600; color:#6e6e73; font-size:0.85rem;">ONE-PAGER</span>
-        <div class="output-actions">
-          <button class="btn-sm" id="copy-one-pager">Copy</button>
-          <button class="btn-sm" id="download-one-pager">Download</button>
-          <button class="btn-sm" onclick="window.print()">Print</button>
+    <!-- ── Right: output ── -->
+    <main class="right">
+
+      <!-- Empty state -->
+      <div class="empty-state" id="empty-state">
+        <div class="empty-state-icon">✨</div>
+        <h2>Ready to summarise</h2>
+        <p>Paste a URL, DOI, or upload a PDF on the left, then click Summarise.</p>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-state" id="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Generating summary with Claude…</div>
+      </div>
+
+      <!-- Output -->
+      <div class="output-panel" id="output-panel">
+
+        <div class="output-header">
+          <div class="output-tabs" id="output-tabs">
+            <button class="output-tab-btn active" data-out="out-one-pager">One-Pager</button>
+            <button class="output-tab-btn" data-out="out-flowchart">Flow Chart</button>
+            <button class="output-tab-btn" data-out="out-table">Table</button>
+          </div>
+          <div class="dl-actions" id="dl-actions">
+            <!-- Populated per tab -->
+          </div>
+        </div>
+
+        <div class="output-body">
+
+          <!-- One-pager -->
+          <div class="out-tab active md" id="out-one-pager"></div>
+
+          <!-- Flowchart -->
+          <div class="out-tab" id="out-flowchart">
+            <div id="flowchart-container"></div>
+            <textarea id="flowchart-raw" readonly></textarea>
+          </div>
+
+          <!-- Table -->
+          <div class="out-tab md" id="out-table"></div>
+
         </div>
       </div>
-      <div class="md-content" id="one-pager-content"></div>
-    </div>
 
-    <!-- Flowchart -->
-    <div id="flowchart-panel" class="tab-panel">
-      <div class="output-header">
-        <span style="font-weight:600; color:#6e6e73; font-size:0.85rem;">FLOW CHART</span>
-        <div class="output-actions">
-          <button class="btn-sm" id="copy-flowchart">Copy source</button>
-          <button class="btn-sm" id="download-flowchart-svg">Download SVG</button>
-        </div>
-      </div>
-      <div id="flowchart-svg"></div>
-      <textarea id="flowchart-raw" readonly></textarea>
-    </div>
-
-    <!-- Table -->
-    <div id="table-panel" class="tab-panel">
-      <div class="output-header">
-        <span style="font-weight:600; color:#6e6e73; font-size:0.85rem;">CONCEPT TABLE</span>
-        <div class="output-actions">
-          <button class="btn-sm" id="copy-table">Copy</button>
-          <button class="btn-sm" id="download-table">Download</button>
-        </div>
-      </div>
-      <div class="md-content" id="table-content"></div>
-    </div>
+    </main>
   </div>
 
   <script>
-    mermaid.initialize({ startOnLoad: false, theme: "default" });
+    mermaid.initialize({ startOnLoad: false, theme: "base",
+      themeVariables: { primaryColor: "#eef0ff", primaryBorderColor: "#5b5fc7", lineColor: "#7b7f9e" }
+    });
 
-    // Tab switching (generic)
-    function setupTabs(containerSelector) {
-      document.querySelectorAll(containerSelector + " .tab-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const tabId = btn.dataset.tab;
-          const container = btn.closest(".card") || document.body;
-          container.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-          container.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-          btn.classList.add("active");
-          document.getElementById(tabId).classList.add("active");
-        });
+    // ── State ──
+    let rawData = null;
+    let activeOut = "out-one-pager";
+
+    // ── Tab switching: input ──
+    document.querySelectorAll("#input-tabs .input-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#input-tabs .input-tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // ── Tab switching: output ──
+    const dlConfigs = {
+      "out-one-pager": [
+        { label: "Download .md", action: () => rawData && dlText(rawData.one_pager, "one-pager.md") },
+        { label: "Print", action: () => window.print() },
+      ],
+      "out-flowchart": [
+        { label: "Download SVG", action: () => dlSvg("flowchart.svg") },
+        { label: "Copy Mermaid", action: () => rawData && copyText(rawData.flowchart) },
+      ],
+      "out-table": [
+        { label: "Download .md", action: () => rawData && dlText(rawData.table, "table.md") },
+      ],
+    };
+
+    function renderDlButtons(outId) {
+      const wrap = document.getElementById("dl-actions");
+      wrap.innerHTML = "";
+      (dlConfigs[outId] || []).forEach(cfg => {
+        const btn = document.createElement("button");
+        btn.className = "btn-dl";
+        btn.innerHTML = `<svg viewBox="0 0 20 20"><path d="M13 8h-2V3H9v5H7l3 3 3-3zm-8 7h10v-2H5v2z"/></svg>${cfg.label}`;
+        btn.addEventListener("click", cfg.action);
+        wrap.appendChild(btn);
       });
     }
-    setupTabs("#input-tabs");
-    setupTabs("#output-tabs");
 
-    // File drop
+    document.querySelectorAll("#output-tabs .output-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#output-tabs .output-tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".out-tab").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        activeOut = btn.dataset.out;
+        document.getElementById(activeOut).classList.add("active");
+        renderDlButtons(activeOut);
+      });
+    });
+
+    // ── File drop ──
     const fileDrop = document.getElementById("file-drop");
     const pdfInput = document.getElementById("pdf-input");
-    const pdfBtn = document.getElementById("pdf-btn");
     const fileNameEl = document.getElementById("file-name");
 
     pdfInput.addEventListener("change", () => {
-      if (pdfInput.files[0]) {
-        fileNameEl.textContent = pdfInput.files[0].name;
-        pdfBtn.disabled = false;
-      }
+      if (pdfInput.files[0]) fileNameEl.textContent = pdfInput.files[0].name;
     });
     fileDrop.addEventListener("dragover", e => { e.preventDefault(); fileDrop.classList.add("dragover"); });
     fileDrop.addEventListener("dragleave", () => fileDrop.classList.remove("dragover"));
@@ -307,34 +551,58 @@
       e.preventDefault();
       fileDrop.classList.remove("dragover");
       const file = e.dataTransfer.files[0];
-      if (file && file.name.endsWith(".pdf")) {
+      if (file?.name.toLowerCase().endsWith(".pdf")) {
         const dt = new DataTransfer();
         dt.items.add(file);
         pdfInput.files = dt.files;
         fileNameEl.textContent = file.name;
-        pdfBtn.disabled = false;
       }
     });
 
-    // State
-    let rawData = null;
+    // ── UI state helpers ──
+    function showState(name) {
+      document.getElementById("empty-state").style.display   = name === "empty"   ? "flex"  : "none";
+      document.getElementById("loading-state").classList.toggle("active", name === "loading");
+      document.getElementById("output-panel").classList.toggle("active", name === "output");
+    }
 
     function showError(msg) {
-      const el = document.getElementById("error-banner");
+      const el = document.getElementById("error-box");
       el.textContent = msg;
       el.classList.add("active");
     }
     function clearError() {
-      document.getElementById("error-banner").classList.remove("active");
+      document.getElementById("error-box").classList.remove("active");
     }
-    function setLoading(on) {
-      document.getElementById("spinner").classList.toggle("active", on);
-      document.getElementById("output-card").style.display = on ? "none" : (rawData ? "block" : "none");
-      ["url-btn","doi-btn","pdf-btn"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = on || (id === "pdf-btn" && !pdfInput.files[0]);
-      });
+
+    // ── Render results ──
+    async function renderResults(data) {
+      rawData = data;
+
+      document.getElementById("out-one-pager").innerHTML = marked.parse(data.one_pager);
+      document.getElementById("out-table").innerHTML = marked.parse(data.table);
+
+      const container = document.getElementById("flowchart-container");
+      container.innerHTML = "";
+      try {
+        const { svg } = await mermaid.render("mermaid-graph", data.flowchart);
+        container.innerHTML = svg;
+      } catch (_) {
+        container.innerHTML = `<pre class="mermaid-fallback">${escapeHtml(data.flowchart)}</pre>`;
+      }
+      document.getElementById("flowchart-raw").value = data.flowchart;
+
+      // Reset to first tab
+      document.querySelectorAll("#output-tabs .output-tab-btn").forEach((b, i) => b.classList.toggle("active", i === 0));
+      document.querySelectorAll(".out-tab").forEach((p, i) => p.classList.toggle("active", i === 0));
+      activeOut = "out-one-pager";
+      renderDlButtons(activeOut);
+
+      showState("output");
     }
+
+    // ── Submit ──
+    const submitBtn = document.getElementById("submit-btn");
 
     async function handleResponse(resp) {
       if (!resp.ok) {
@@ -344,121 +612,81 @@
       return resp.json();
     }
 
-    async function renderResults(data) {
-      rawData = data;
-      document.getElementById("output-card").style.display = "block";
-
-      // One-pager
-      document.getElementById("one-pager-content").innerHTML = marked.parse(data.one_pager);
-
-      // Table
-      document.getElementById("table-content").innerHTML = marked.parse(data.table);
-
-      // Flowchart
-      const svgEl = document.getElementById("flowchart-svg");
-      svgEl.innerHTML = "";
-      try {
-        const { svg } = await mermaid.render("mermaid-diagram", data.flowchart);
-        svgEl.innerHTML = svg;
-      } catch (e) {
-        svgEl.innerHTML = `<pre class="mermaid-fallback">${escapeHtml(data.flowchart)}</pre>`;
-      }
-      document.getElementById("flowchart-raw").value = data.flowchart;
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    }
-
     async function submit(fetchFn) {
       clearError();
-      setLoading(true);
+      submitBtn.disabled = true;
+      showState("loading");
       try {
         const data = await fetchFn();
         await renderResults(data);
       } catch (e) {
-        showError("Error: " + e.message);
-        document.getElementById("output-card").style.display = "none";
+        showError(e.message);
+        showState(rawData ? "output" : "empty");
       } finally {
-        setLoading(false);
+        submitBtn.disabled = false;
       }
     }
 
-    document.getElementById("url-btn").addEventListener("click", () => {
-      const url = document.getElementById("url-input").value.trim();
-      if (!url) return showError("Please enter a URL.");
-      submit(() =>
-        fetch("/process/url", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+    submitBtn.addEventListener("click", () => {
+      // Determine active input tab
+      const activeInputTab = document.querySelector("#input-tabs .input-tab-btn.active")?.dataset.tab;
+
+      if (activeInputTab === "url-panel") {
+        const url = document.getElementById("url-input").value.trim();
+        if (!url) return showError("Please enter a URL.");
+        submit(() => fetch("/process/url", {
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url }),
-        }).then(handleResponse)
-      );
-    });
+        }).then(handleResponse));
 
-    document.getElementById("doi-btn").addEventListener("click", () => {
-      const doi = document.getElementById("doi-input").value.trim();
-      if (!doi) return showError("Please enter a DOI.");
-      submit(() =>
-        fetch("/process/doi", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+      } else if (activeInputTab === "doi-panel") {
+        const doi = document.getElementById("doi-input").value.trim();
+        if (!doi) return showError("Please enter a DOI.");
+        submit(() => fetch("/process/doi", {
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ doi }),
-        }).then(handleResponse)
-      );
+        }).then(handleResponse));
+
+      } else if (activeInputTab === "pdf-panel") {
+        const file = pdfInput.files[0];
+        if (!file) return showError("Please select a PDF file.");
+        const form = new FormData();
+        form.append("file", file);
+        submit(() => fetch("/process/pdf", { method: "POST", body: form }).then(handleResponse));
+      }
     });
 
-    document.getElementById("pdf-btn").addEventListener("click", () => {
-      const file = pdfInput.files[0];
-      if (!file) return showError("Please select a PDF file.");
-      const form = new FormData();
-      form.append("file", file);
-      submit(() =>
-        fetch("/process/pdf", { method: "POST", body: form }).then(handleResponse)
-      );
-    });
-
-    // Enter key support for text inputs
-    ["url-input","doi-input"].forEach(id => {
+    // Enter key
+    ["url-input", "doi-input"].forEach(id => {
       document.getElementById(id).addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-          const btnId = id.replace("input","btn");
-          document.getElementById(btnId).click();
-        }
+        if (e.key === "Enter") submitBtn.click();
       });
     });
 
-    // Copy/download helpers
+    // ── Helpers ──
+    function escapeHtml(s) {
+      return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
     function copyText(text) {
       navigator.clipboard.writeText(text).catch(() => {
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
+        const ta = Object.assign(document.createElement("textarea"), { value: text });
+        document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
       });
     }
-    function downloadText(text, filename) {
+    function dlText(text, filename) {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
-      a.download = filename;
-      a.click();
+      a.download = filename; a.click();
     }
-    function downloadSvg(filename) {
-      const svg = document.getElementById("flowchart-svg").innerHTML;
+    function dlSvg(filename) {
+      const svg = document.getElementById("flowchart-container").innerHTML;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-      a.download = filename;
-      a.click();
+      a.download = filename; a.click();
     }
 
-    document.getElementById("copy-one-pager").addEventListener("click", () => rawData && copyText(rawData.one_pager));
-    document.getElementById("download-one-pager").addEventListener("click", () => rawData && downloadText(rawData.one_pager, "one-pager.md"));
-    document.getElementById("copy-flowchart").addEventListener("click", () => rawData && copyText(rawData.flowchart));
-    document.getElementById("download-flowchart-svg").addEventListener("click", () => downloadSvg("flowchart.svg"));
-    document.getElementById("copy-table").addEventListener("click", () => rawData && copyText(rawData.table));
-    document.getElementById("download-table").addEventListener("click", () => rawData && downloadText(rawData.table, "table.md"));
+    // Initial state
+    showState("empty");
   </script>
 </body>
 </html>

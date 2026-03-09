@@ -483,6 +483,13 @@
       .output-body { padding: 1rem; }
     }
 
+    /* PDF export — applied temporarily via JS during html2pdf render */
+    .pdf-export table        { page-break-inside: auto; }
+    .pdf-export thead        { display: table-header-group; }
+    .pdf-export tr           { page-break-inside: avoid; page-break-after: auto; }
+    .pdf-export h2, .pdf-export h3 { page-break-after: avoid; }
+    .pdf-export img, .pdf-export svg { page-break-inside: avoid; max-width: 100%; }
+
     /* Responsive: stack on small screens */
     @media (max-width: 700px) {
       .layout { flex-direction: column; }
@@ -936,110 +943,19 @@
       const el = document.getElementById(elementId);
       if (!el) return;
 
-      // A4 dimensions at 96 dpi (px):
-      //   Portrait:  794 × 1123  →  content width at 15mm margins = 680px
-      //   Landscape: 1123 × 794  →  content width at 15mm margins = 969px
-      const isLandscape = orientation === "landscape";
-      const contentWidthPx = isLandscape ? 969 : 680;
-
-      // Clone into an isolated off-screen container
-      const clone = el.cloneNode(true);
-
-      // Inject print-optimised styles into the clone
-      const style = document.createElement("style");
-      style.textContent = `
-        * { box-sizing: border-box; }
-        body, div { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        h1 { font-size: 18px; font-weight: 700; margin: 0 0 12px; color: #1a1b2e; }
-        h2 { font-size: 14px; font-weight: 700; margin: 16px 0 6px; color: #1e3a5f;
-             border-bottom: 2px solid #d0d9f0; padding-bottom: 4px;
-             page-break-after: avoid; }
-        h3 { font-size: 13px; font-weight: 600; margin: 10px 0 4px; page-break-after: avoid; }
-        p  { font-size: 12px; line-height: 1.6; margin: 4px 0; color: #2a2c42; }
-        ul, ol { padding-left: 18px; margin: 4px 0; }
-        li { font-size: 12px; line-height: 1.55; margin: 2px 0; }
-        strong { font-weight: 700; color: #1e3a5f; }
-
-        /* Tables — prevent rows being split across pages */
-        table {
-          border-collapse: collapse;
-          width: 100%;
-          font-size: 11px;
-          margin: 6px 0 16px;
-          page-break-inside: auto;
-          border: 1px solid #c5cee0;
-        }
-        thead { display: table-header-group; }
-        tr    { page-break-inside: avoid; page-break-after: auto; }
-        th {
-          padding: 6px 8px;
-          text-align: left;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          color: #fff;
-          background: #1e3a5f;
-          border-right: 1px solid rgba(255,255,255,0.2);
-        }
-        td {
-          padding: 5px 8px;
-          border-bottom: 1px solid #dde3f0;
-          border-right: 1px solid #edf0f8;
-          vertical-align: top;
-          line-height: 1.4;
-        }
-        tr:nth-child(odd)  td { background: #f4f6fd; }
-        tr:nth-child(even) td { background: #ffffff; }
-
-        /* Table colour themes */
-        table.tbl-deficiency  th { background: #8b1a1a; }
-        table.tbl-deficiency  tr:nth-child(odd) td { background: #fff4f4; }
-        table.tbl-toxicity    th { background: #6b1a00; }
-        table.tbl-toxicity    tr:nth-child(odd) td { background: #fff5f0; }
-        table.tbl-interaction th { background: #1a5c35; }
-        table.tbl-interaction tr:nth-child(odd) td { background: #f0fff5; }
-        table.tbl-acronym     th { background: #7a4500; }
-        table.tbl-acronym     tr:nth-child(odd) td { background: #fffaf0; }
-        table.tbl-special     th { background: #4a1a7a; }
-        table.tbl-special     tr:nth-child(odd) td { background: #f8f0ff; }
-        table.tbl-group       th { background: #1a4a5c; }
-        table.tbl-group       tr:nth-child(odd) td { background: #f0f8ff; }
-
-        /* Table pill labels */
-        .tbl-label {
-          display: inline-block;
-          font-size: 9px; font-weight: 700; letter-spacing: 0.04em;
-          padding: 2px 8px; border-radius: 20px; margin: 10px 0 3px;
-        }
-        .tbl-label-reference   { background:#dce6ff; color:#1e3a5f; }
-        .tbl-label-deficiency  { background:#ffe0e0; color:#8b1a1a; }
-        .tbl-label-toxicity    { background:#ffe5d8; color:#6b1a00; }
-        .tbl-label-interaction { background:#d6f5e3; color:#1a5c35; }
-        .tbl-label-acronym     { background:#ffefc0; color:#7a4500; }
-        .tbl-label-special     { background:#ecd9ff; color:#4a1a7a; }
-        .tbl-label-group       { background:#d6edff; color:#1a4a5c; }
-
-        /* SVG / flowchart */
-        svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-      `;
-
-      const wrapper = document.createElement("div");
-      wrapper.style.cssText = `width:${contentWidthPx}px; padding:0; background:#fff; position:absolute; left:-9999px; top:0;`;
-      wrapper.appendChild(style);
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
+      // Add a temporary class that applies page-break rules without touching live styles
+      el.classList.add("pdf-export");
 
       const opt = {
-        margin:      [15, 15, 15, 15],   // mm — matches contentWidthPx calculation
+        margin:      [15, 15, 15, 15],
         filename,
         image:       { type: "jpeg", quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
           logging: false,
-          windowWidth: contentWidthPx,
-          scrollY: 0,
+          scrollX: 0,
+          scrollY: -window.scrollY,
         },
         jsPDF:       { unit: "mm", format: "a4", orientation },
         pagebreak:   { mode: ["css", "legacy"], avoid: ["tr", "img", "svg", "h2", "h3"] },
@@ -1047,9 +963,10 @@
 
       html2pdf()
         .set(opt)
-        .from(wrapper)
+        .from(el)
         .save()
-        .finally(() => document.body.removeChild(wrapper));
+        .then(() => el.classList.remove("pdf-export"))
+        .catch(() => el.classList.remove("pdf-export"));
     }
 
     // Initial state
